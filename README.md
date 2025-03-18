@@ -1,23 +1,35 @@
 # Unit Converter
 
-A versatile and user-friendly unit conversion application built with React.
+A versatile and user-friendly unit conversion application with a modern, minimalist design built with React and Shadcn UI.
 
 ## Features
 
 - Convert between various units across different categories (length, weight, temperature, etc.)
+- Clean, minimalist black and white interface
 - Real-time conversion as you type
 - Swap between 'from' and 'to' units easily
 - Adjustable decimal precision for results
-- Dark mode support
-- Multilingual support
+- Multilingual support (English, Spanish, French)
 - Save favorite conversions for quick access
-- View recent conversion history
-- Responsive design for desktop and mobile use
+- View conversion history
+- Responsive design for all devices
+- Formula display for educational purposes
+
+## UI Design
+
+- Modern minimalist interface with black and white aesthetic
+- Light gray background with white content cards
+- Clear typography with proper visual hierarchy
+- Subtle animations and hover states
+- Mobile-first responsive layout
 
 ## Technologies Used
 
 - React
-- CSS3
+- Tailwind CSS
+- Shadcn UI components
+- Radix UI primitives
+- Lucide React icons
 - i18next for internationalization
 - Local Storage for persisting user preferences and favorites
 
@@ -25,7 +37,7 @@ A versatile and user-friendly unit conversion application built with React.
 
 ### Prerequisites
 
-- Node.js (version 12.0 or later)
+- Node.js (version 14.0 or later)
 - npm (usually comes with Node.js)
 
 ### Installation
@@ -51,10 +63,10 @@ A versatile and user-friendly unit conversion application built with React.
 4. Start the development server:
 
    ```
-   npm start
+   npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+5. Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
 
 ## Usage
 
@@ -78,7 +90,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 ## Acknowledgments
 
 - Thanks to all contributors who have helped with this project.
-- Special thanks to [any libraries or resources you've used] for making this project possible.
+- [Shadcn UI](https://ui.shadcn.com/) for the beautiful component library
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first CSS framework
+- [Radix UI](https://www.radix-ui.com/) for accessible UI primitives
+- [Lucide Icons](https://lucide.dev/) for the clean, minimal icons
 
 ## Contact
 

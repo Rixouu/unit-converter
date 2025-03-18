@@ -1,10 +1,11 @@
-import React from 'react'
 import UnitConverter from './components/UnitConverter'
 
 function App() {
   return (
-    <div className="App">
-      <UnitConverter />
+    <div className="min-h-screen bg-gray-50">
+      <div className="py-6">
+        <UnitConverter />
+      </div>
     </div>
   )
 }
