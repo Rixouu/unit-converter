@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { convertUnits, conversionRates } from '../utils/conversionUtils';
 import { conversionFormulas } from '../utils/conversionFormulas';
-import { ArrowLeftRight, Star, RotateCcw, Globe } from 'lucide-react';
+import { ArrowLeftRight, Star, RotateCcw, Globe, Hash } from 'lucide-react';
 
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { PwaInstallBanner } from './PWAInstallBanner';
 
 function UnitConverter() {
   const { t, i18n } = useTranslation();
@@ -51,13 +52,13 @@ function UnitConverter() {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const formatResult = (value) => {
-    const numValue = parseFloat(value);
+  const formatResult = (val) => {
+    const numValue = parseFloat(val);
     if (isNaN(numValue)) return '';
     if (Math.abs(numValue) >= 1e9 || Math.abs(numValue) < 1e-9) {
       return numValue.toExponential(precision);
     }
-    return numValue.toFixed(precision);
+    return parseFloat(numValue.toFixed(precision)).toString();
   };
 
   const handleConvert = () => {
@@ -81,10 +82,13 @@ function UnitConverter() {
   };
 
   const handleSwapUnits = () => {
+    const prevFrom = fromUnit;
     setFromUnit(toUnit);
-    setToUnit(fromUnit);
-    setValue(result);
-    setResult('');
+    setToUnit(prevFrom);
+    if (result) {
+        setValue(result);
+        setResult('');
+    }
   };
 
   const toggleFavorite = (conversion) => {
@@ -93,226 +97,208 @@ function UnitConverter() {
         fav.from === conversion.from && fav.to === conversion.to
       );
       if (existingIndex >= 0) {
-        // Remove from favorites if already exists
         return prevFavorites.filter((_, index) => index !== existingIndex);
       } else {
-        // Add to favorites
         return [...prevFavorites, conversion];
       }
     });
   };
 
   return (
-    <>
-      <div className="w-full bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 max-w-5xl py-3">
-          <div className="flex justify-between items-center">
-            <h1 className="text-lg font-medium tracking-tight">
-              <span className="font-bold">unit</span>converter
-            </h1>
-            <div className="flex items-center gap-2">
-              <Globe size={16} className="text-gray-500" />
-              <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
-                <SelectTrigger className="w-[110px] h-9 text-sm bg-transparent border-gray-200 hover:bg-gray-50">
-                  <SelectValue placeholder="Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Español</SelectItem>
-                  <SelectItem value="fr">Français</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-12 bg-zinc-50 dark:bg-zinc-950">
+      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 p-8 md:p-12 relative overflow-hidden">
+        
+        {/* Language Selector */}
+        <div className="absolute top-8 right-8">
+          <Select value={i18n.language} onValueChange={(v) => i18n.changeLanguage(v)}>
+            <SelectTrigger className="w-[100px] h-8 text-[11px] font-semibold uppercase tracking-wider bg-zinc-50 border-none hover:bg-zinc-100 transition-colors rounded-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">EN</SelectItem>
+              <SelectItem value="es">ES</SelectItem>
+              <SelectItem value="fr">FR</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 max-w-5xl pt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="border-b px-6 py-4">
-                <CardTitle className="text-base font-medium">
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="w-full h-10 bg-transparent border-gray-200 hover:bg-gray-50">
-                      <SelectValue placeholder="Select category" />
+        {/* Header */}
+        <div className="flex flex-col items-center mb-12 text-center">
+          <div className="w-20 h-20 bg-[#E91E63] rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-[#E91E63]/20">
+            <img src="/icon-unit-converter.png" alt="Unit Converter" className="w-12 h-12 brightness-0 invert" />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-3">Unit Converter</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 max-w-sm">Premium real-time conversion for professional workflows.</p>
+        </div>
+
+        {/* Category Selector */}
+        <div className="mb-8">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-full h-12 bg-zinc-50 dark:bg-zinc-800/50 border-none rounded-2xl text-lg font-medium hover:bg-zinc-100 transition-colors">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(conversionRates).map((cat) => (
+                <SelectItem key={cat} value={cat} className="capitalize py-3">
+                  {t(`categories.${cat}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Conversion Form */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-end">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">{t('from') || 'From'}</label>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  value={value} 
+                  onChange={(e) => setValue(e.target.value)} 
+                  placeholder="0.00"
+                  className="h-14 bg-zinc-50 dark:bg-zinc-800/50 border-none rounded-2xl text-xl font-semibold px-4 focus-visible:ring-2 focus-visible:ring-[#E91E63]/20"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Select value={fromUnit} onValueChange={setFromUnit}>
+                    <SelectTrigger className="w-auto h-8 bg-white dark:bg-zinc-900 border-none shadow-sm rounded-lg text-xs font-bold px-2">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(conversionRates).map((cat) => (
-                        <SelectItem key={cat} value={cat} className="capitalize">
-                          {t(`categories.${cat}`)}
+                      {Object.keys(conversionRates[category]).map((unit) => (
+                        <SelectItem key={unit} value={unit} className="text-xs">
+                          {t(`units.${unit}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent className="space-y-6 p-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">From</label>
-                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                    <div className="lg:col-span-3">
-                      <Input 
-                        type="number" 
-                        value={value} 
-                        onChange={(e) => setValue(e.target.value)} 
-                        placeholder="Enter value"
-                        className="h-10 bg-transparent border-gray-200"
-                      />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <Select value={fromUnit} onValueChange={setFromUnit}>
-                        <SelectTrigger className="w-full h-10 bg-transparent border-gray-200 hover:bg-gray-50">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(conversionRates[category]).map((unit) => (
-                            <SelectItem key={unit} value={unit}>
-                              {t(`units.${unit}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
                 </div>
+              </div>
+            </div>
 
-                <div className="flex justify-center">
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={handleSwapUnits} 
-                    className="h-8 w-8 rounded-full border-gray-200 hover:bg-gray-50 hover:text-black"
-                  >
-                    <ArrowLeftRight className="h-4 w-4" />
-                  </Button>
-                </div>
+            <div className="flex justify-center pb-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleSwapUnits} 
+                className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-[#E91E63] hover:bg-[#E91E63]/5 transition-all"
+              >
+                <ArrowLeftRight className="h-5 w-5" />
+              </Button>
+            </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">To</label>
-                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                    <div className="lg:col-span-3">
-                      <Input 
-                        type="text" 
-                        value={result} 
-                        readOnly 
-                        placeholder="Result" 
-                        className="h-10 bg-transparent border-gray-200"
-                      />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <Select value={toUnit} onValueChange={setToUnit}>
-                        <SelectTrigger className="w-full h-10 bg-transparent border-gray-200 hover:bg-gray-50">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(conversionRates[category]).map((unit) => (
-                            <SelectItem key={unit} value={unit}>
-                              {t(`units.${unit}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex flex-col md:flex-row md:justify-between gap-4 p-6 border-t">
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Precision</label>
-                  <Select value={precision.toString()} onValueChange={(value) => setPrecision(parseInt(value))}>
-                    <SelectTrigger className="w-[70px] h-9 bg-transparent border-gray-200 hover:bg-gray-50">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">{t('to') || 'To'}</label>
+              <div className="relative">
+                <Input 
+                  type="text" 
+                  value={result} 
+                  readOnly 
+                  placeholder="0.00" 
+                  className="h-14 bg-zinc-50 dark:bg-zinc-800/50 border-none rounded-2xl text-xl font-semibold px-4"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Select value={toUnit} onValueChange={setToUnit}>
+                    <SelectTrigger className="w-auto h-8 bg-white dark:bg-zinc-900 border-none shadow-sm rounded-lg text-xs font-bold px-2">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-                        <SelectItem key={value} value={value.toString()}>{value}</SelectItem>
+                      {Object.keys(conversionRates[category]).map((unit) => (
+                        <SelectItem key={unit} value={unit} className="text-xs">
+                          {t(`units.${unit}`)}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  onClick={handleConvert} 
-                  className="w-full md:w-auto md:px-6 h-9 bg-black hover:bg-black/90 text-white"
-                >
-                  Convert
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="border-b px-5 py-3">
-                <CardTitle className="text-sm font-medium">Formula</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <p className="text-xs text-gray-700 font-mono bg-gray-50 p-3 rounded-sm">
-                  {formula}
-                </p>
-              </CardContent>
-            </Card>
-
-            {favorites.length > 0 && (
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="border-b px-5 py-3">
-                  <CardTitle className="text-sm font-medium">Favorites</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <ul className="divide-y divide-gray-100">
-                    {favorites.map((favorite, index) => (
-                      <li key={index} className="flex justify-between items-center py-2 first:pt-0 last:pb-0">
-                        <span className="text-xs text-gray-700">{favorite.from} = {favorite.to}</span>
-                        <Button variant="ghost" size="icon" onClick={() => toggleFavorite(favorite)} className="h-7 w-7 hover:bg-gray-50">
-                          <Star className="h-3.5 w-3.5 fill-current text-gray-800" />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="flex flex-row items-center justify-between border-b px-5 py-3">
-                <CardTitle className="text-sm font-medium">History</CardTitle>
-                {recentConversions.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearRecentConversions} className="h-7 px-2 text-xs hover:bg-gray-50">
-                    <RotateCcw className="h-3 w-3 mr-1" />
-                    Clear
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-4">
-                {recentConversions.length > 0 ? (
-                  <ul className="divide-y divide-gray-100">
-                    {recentConversions.map((conversion, index) => (
-                      <li key={index} className="flex justify-between items-center py-2 first:pt-0 last:pb-0">
-                        <span className="text-xs text-gray-700">{conversion.from} = {conversion.to}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => toggleFavorite(conversion)}
-                          className="h-7 w-7 hover:bg-gray-50"
-                        >
-                          <Star className={`h-3.5 w-3.5 ${favorites.some(fav => 
-                            fav.from === conversion.from && fav.to === conversion.to
-                          ) ? 'fill-current text-gray-800' : 'text-gray-400'}`} />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-gray-500 text-center py-2">No conversion history</p>
-                )}
-              </CardContent>
-            </Card>
+          <div className="flex flex-col md:flex-row items-center gap-4 pt-4">
+            <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl px-4 h-12">
+              <Hash size={16} className="text-zinc-400" />
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t('precision') || 'Precision'}</label>
+              <Select value={precision.toString()} onValueChange={(v) => setPrecision(parseInt(v))}>
+                <SelectTrigger className="w-12 h-8 bg-transparent border-none font-bold text-zinc-700 dark:text-zinc-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[0, 1, 2, 3, 4, 5, 6].map((v) => (
+                    <SelectItem key={v} value={v.toString()}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={handleConvert} 
+              className="flex-1 h-12 bg-[#E91E63] hover:bg-[#E91E63]/90 text-white rounded-2xl text-lg font-bold shadow-lg shadow-[#E91E63]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {t('convert') || 'Convert'}
+            </Button>
           </div>
         </div>
+
+        {/* Footer Grid: Formula, History, Favorites */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800">
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">{t('formula') || 'Formula'}</h4>
+            <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400 leading-relaxed bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100/50 dark:border-zinc-800">
+              {formula}
+            </p>
+          </div>
+
+          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t('history') || 'History'}</h4>
+              {recentConversions.length > 0 && (
+                <button onClick={clearRecentConversions} className="text-[10px] font-bold text-[#E91E63] uppercase tracking-wider hover:opacity-80 transition-opacity">
+                  {t('clear') || 'Clear'}
+                </button>
+              )}
+            </div>
+            <div className="space-y-2 overflow-y-auto max-h-[120px] pr-1">
+              {recentConversions.length > 0 ? (
+                recentConversions.map((conv, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100/50 dark:border-zinc-800 group">
+                    <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 truncate pr-2">{conv.from} = {conv.to}</span>
+                    <button 
+                      onClick={() => toggleFavorite(conv)}
+                      className="text-zinc-300 hover:text-yellow-400 transition-colors"
+                    >
+                      <Star className={`h-3.5 w-3.5 ${favorites.some(f => f.from === conv.from && f.to === conv.to) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-[11px] text-zinc-400 text-center py-4">{t('noHistory') || 'No history'}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Favorites Section (Optional: only if exists) */}
+        {favorites.length > 0 && (
+          <div className="mt-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800">
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">{t('favorites') || 'Favorites'}</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {favorites.map((fav, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100/50 dark:border-zinc-800">
+                  <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 truncate">{fav.from} = {fav.to}</span>
+                  <button onClick={() => toggleFavorite(fav)} className="text-yellow-400 hover:text-zinc-300 transition-colors">
+                    <Star className="h-3.5 w-3.5 fill-current" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
-    </>
+      
+      <PwaInstallBanner />
+    </main>
   );
 }
 

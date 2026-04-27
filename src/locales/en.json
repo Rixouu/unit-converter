@@ -10,6 +10,21 @@
   "conversionFormula": "Conversion Formula",
   "formulaNotAvailable": "Formula not available",
   "clear": "Clear",
+  "pwa": {
+    "bannerAria": "Install app",
+    "bannerTitleInstall": "Install Unit Converter",
+    "bannerTitleIos": "Add to Home Screen",
+    "bannerSubtitleIos": "Quick access like a native app",
+    "bannerInstall": "Install",
+    "bannerInstalling": "...",
+    "bannerDismissAria": "Dismiss",
+    "bannerIosStepsLabel": "How to install",
+    "bannerIosBodySafari": "Tap Share, then Add to Home Screen.",
+    "bannerIosBodyChrome": "Tap ⋯ (More), then Add to Home Screen.",
+    "bannerIosBodyFirefox": "Open the menu (☰), tap Share, then Add to Home Screen.",
+    "bannerIosBodyGeneric": "Use Share or your browser’s ⋯ menu, then Add to Home Screen.",
+    "bannerChromeHint": "Tap Install, then confirm in the prompt."
+  },
   "categories": {
     "length": "Length",
     "mass": "Mass",
