@@ -125,7 +125,7 @@ function UnitConverter() {
         {/* Header */}
         <div className="flex flex-col items-center mb-12 text-center">
           <div className="w-20 h-20 bg-[#E91E63] rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-[#E91E63]/20">
-            <img src="/icon-unit-converter.png" alt="Unit Converter" className="w-12 h-12 brightness-0 invert" />
+            <img src="/icon-unit-converter.png" alt="Unit Converter" className="w-12 h-12" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-3">Unit Converter</h1>
           <p className="text-zinc-500 dark:text-zinc-400 max-w-sm">Premium real-time conversion for professional workflows.</p>
