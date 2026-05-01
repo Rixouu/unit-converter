@@ -117,16 +117,16 @@ function UnitConverter() {
   const incrementPrecision = () => setPrecision((p) => Math.min(6, p + 1));
 
   return (
-    <main className="min-h-dvh bg-[linear-gradient(145deg,#FDF6F9_0%,#F5F0FB_50%,#EFF6FF_100%)] px-4 py-6 md:px-8 md:py-12 flex justify-center">
+    <main className="min-h-dvh bg-[linear-gradient(145deg,#FDF6F9_0%,#F5F0FB_50%,#EFF6FF_100%)] px-4 py-6 md:px-8 md:py-12 flex justify-center md:items-center">
       <div className="w-full max-w-[980px]">
         <div className="w-full bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-[0_2px_40px_rgba(180,100,140,0.10),0_1px_8px_rgba(180,100,140,0.06)] border border-[rgba(220,190,210,0.25)]">
-          <div className="px-5 pt-[max(1.25rem,env(safe-area-inset-top,0px))] pb-4 bg-white dark:bg-zinc-900 border-b border-[#F5EDF3] dark:border-zinc-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[14px] bg-[linear-gradient(135deg,#E8608A,#C4447A)] flex items-center justify-center shrink-0 shadow-[0_10px_30px_rgba(196,68,122,0.20)]">
-              <img src="/icon-unit-converter.png" alt="Unit Converter" className="w-6 h-6" />
+          <div className="px-5 md:px-8 pt-[max(1.25rem,env(safe-area-inset-top,0px))] md:pt-8 pb-4 md:pb-6 bg-white dark:bg-zinc-900 border-b border-[#F5EDF3] dark:border-zinc-800 flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded-[14px] md:rounded-[18px] bg-[#E91E64] flex items-center justify-center shrink-0 shadow-[0_10px_30px_rgba(233,30,100,0.22)]">
+              <img src="/icon-unit-converter.png" alt="Unit Converter" className="w-6 h-6 md:w-8 md:h-8" />
             </div>
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-[#1E1228] dark:text-zinc-50 tracking-[-0.2px] truncate">Unit Converter</p>
-              <p className="text-[11px] text-[#A890B0] dark:text-zinc-400 truncate">Premium real-time conversion</p>
+              <p className="text-[15px] md:text-[18px] font-semibold text-[#1E1228] dark:text-zinc-50 tracking-[-0.2px] truncate">Unit Converter</p>
+              <p className="text-[11px] md:text-[13px] text-[#A890B0] dark:text-zinc-400 truncate">Premium real-time conversion</p>
             </div>
             <div className="ml-auto">
               <Select value={i18n.language} onValueChange={(v) => i18n.changeLanguage(v)}>
