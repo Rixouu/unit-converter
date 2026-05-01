@@ -168,10 +168,8 @@ export function PwaInstallBanner() {
 
   if (!visible) return null;
 
-  const origin = typeof window !== "undefined" ? window.location.host : "";
-
   const shellClass =
-    "fixed left-3 right-3 top-[max(0.5rem,env(safe-area-inset-top,0px))] z-50 rounded-2xl border border-zinc-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] p-4";
+    "fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:bottom-[max(0.5rem,env(safe-area-inset-bottom,0px))] z-50 rounded-2xl border border-zinc-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] p-4";
 
   if (showIos) {
     return (
