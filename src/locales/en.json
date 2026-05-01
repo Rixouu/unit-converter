@@ -10,6 +10,8 @@
   "conversionFormula": "Conversion Formula",
   "formulaNotAvailable": "Formula not available",
   "clear": "Clear",
+  "noHistory": "No history yet",
+  "noHistoryHint": "Make a conversion to see it here.",
   "pwa": {
     "bannerAria": "Install app",
     "bannerTitleInstall": "Install Unit Converter",

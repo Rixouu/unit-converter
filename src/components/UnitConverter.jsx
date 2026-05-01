@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { convertUnits, conversionRates } from '../utils/conversionUtils';
 import { conversionFormulas } from '../utils/conversionFormulas';
-import { ArrowDownUp, Star, Minus, Plus, Ruler, Weight, Thermometer, Droplets, Square } from 'lucide-react';
+import { ArrowDownUp, Star, Minus, Plus, Clock, Ruler, Weight, Thermometer, Droplets, Square } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -20,11 +20,15 @@ function UnitConverter() {
   const [formula, setFormula] = useState('');
   const [recentConversions, setRecentConversions] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [activeField, setActiveField] = useState('from');
 
   useEffect(() => {
     const units = Object.keys(conversionRates[category]);
     setFromUnit(units[0]);
     setToUnit(units[1]);
+    setValue('');
+    setResult('');
+    setActiveField('from');
   }, [category]);
 
   useEffect(() => {
@@ -60,19 +64,78 @@ function UnitConverter() {
     return parseFloat(numValue.toFixed(precision)).toString();
   };
 
+  const parseNumberStrict = (raw) => {
+    const s = String(raw ?? '').trim();
+    if (!s) return null;
+    if (!/^-?\d*(\.\d*)?$/.test(s)) return null;
+    if (s === '-' || s === '.' || s === '-.' || s.endsWith('.')) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const convertFrom = (raw) => {
+    if (
+      conversionRates[category] == null ||
+      !Object.prototype.hasOwnProperty.call(conversionRates[category], fromUnit) ||
+      !Object.prototype.hasOwnProperty.call(conversionRates[category], toUnit)
+    ) {
+      return null;
+    }
+    const n = parseNumberStrict(raw);
+    if (n == null) {
+      setResult('');
+      return null;
+    }
+    const convertedValue = convertUnits(n, fromUnit, toUnit, category);
+    const formatted = formatResult(convertedValue);
+    setResult(formatted);
+    return formatted;
+  };
+
+  const convertTo = (raw) => {
+    if (
+      conversionRates[category] == null ||
+      !Object.prototype.hasOwnProperty.call(conversionRates[category], fromUnit) ||
+      !Object.prototype.hasOwnProperty.call(conversionRates[category], toUnit)
+    ) {
+      return null;
+    }
+    const n = parseNumberStrict(raw);
+    if (n == null) {
+      setValue('');
+      return null;
+    }
+    const convertedValue = convertUnits(n, toUnit, fromUnit, category);
+    const formatted = formatResult(convertedValue);
+    setValue(formatted);
+    return formatted;
+  };
+
   const handleConvert = () => {
+    const now = new Date().getTime();
+    if (activeField === 'to') {
+      if (!result) return;
+      const newValue = convertTo(result);
+      if (newValue == null) return;
+      const newConversion = {
+        from: `${newValue} ${t(`units.${fromUnit}`)}`,
+        to: `${result} ${t(`units.${toUnit}`)}`,
+        category,
+        timestamp: now
+      };
+      setRecentConversions(prev => [newConversion, ...prev.slice(0, 4)]);
+      return;
+    }
+
     if (!value) return;
-    const convertedValue = convertUnits(parseFloat(value), fromUnit, toUnit, category);
-    const newResult = formatResult(convertedValue);
-    setResult(newResult);
-    
+    const newResult = convertFrom(value);
+    if (newResult == null) return;
     const newConversion = {
       from: `${value} ${t(`units.${fromUnit}`)}`,
       to: `${newResult} ${t(`units.${toUnit}`)}`,
       category,
-      timestamp: new Date().getTime()
+      timestamp: now
     };
-    
     setRecentConversions(prev => [newConversion, ...prev.slice(0, 4)]);
   };
 
@@ -81,13 +144,10 @@ function UnitConverter() {
   };
 
   const handleSwapUnits = () => {
-    const prevFrom = fromUnit;
     setFromUnit(toUnit);
-    setToUnit(prevFrom);
-    if (result) {
-        setValue(result);
-        setResult('');
-    }
+    setToUnit(fromUnit);
+    setValue(result);
+    setResult(value);
   };
 
   const toggleFavorite = (conversion) => {
@@ -116,6 +176,23 @@ function UnitConverter() {
   const decrementPrecision = () => setPrecision((p) => Math.max(0, p - 1));
   const incrementPrecision = () => setPrecision((p) => Math.min(6, p + 1));
 
+  const unitsReady =
+    conversionRates[category] != null &&
+    Object.prototype.hasOwnProperty.call(conversionRates[category], fromUnit) &&
+    Object.prototype.hasOwnProperty.call(conversionRates[category], toUnit);
+
+  useEffect(() => {
+    if (activeField === 'to') {
+      if (!result) return;
+      if (!unitsReady) return;
+      convertTo(result);
+      return;
+    }
+    if (!value) return;
+    if (!unitsReady) return;
+    convertFrom(value);
+  }, [activeField, category, fromUnit, toUnit, precision]);
+
   return (
     <main className="min-h-dvh bg-[linear-gradient(145deg,#FDF6F9_0%,#F5F0FB_50%,#EFF6FF_100%)] px-4 py-6 md:px-8 md:py-12 flex justify-center md:items-center">
       <div className="w-full max-w-[980px]">
@@ -142,7 +219,7 @@ function UnitConverter() {
             </div>
           </div>
 
-          <div className="px-4 py-3 bg-[#FDFAFC] border-b border-[#F5EDF3] dark:border-zinc-800 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="px-5 md:px-8 py-3 bg-[#FDFAFC] border-b border-[#F5EDF3] dark:border-zinc-800 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-2">
               {categories.map((cat) => {
                 const active = cat === category;
@@ -154,7 +231,7 @@ function UnitConverter() {
                     className={[
                       "shrink-0 px-4 py-1.5 rounded-full text-xs font-medium border transition-all",
                       active
-                        ? "border-transparent text-white bg-[linear-gradient(135deg,#E8608A,#C4447A)] shadow-[0_2px_8px_rgba(196,68,122,0.28)]"
+                        ? "border-transparent text-white bg-[#E91E65] shadow-[0_2px_10px_rgba(233,30,101,0.28)]"
                         : "bg-[#F8F2F6] text-[#9070A0] border-[#EAE0EE] hover:bg-[#F3EBF1]",
                     ].join(" ")}
                     aria-current={active ? "page" : undefined}
@@ -166,7 +243,7 @@ function UnitConverter() {
             </div>
           </div>
 
-          <div className="p-4 md:p-6 pb-32 md:pb-6">
+          <div className="px-5 md:px-8 py-4 md:py-6 pb-32 md:pb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
               <div className="space-y-3">
                 <div className="bg-[#FDF7FB] border border-[#F0E6EE] rounded-[20px] p-4">
@@ -175,7 +252,13 @@ function UnitConverter() {
                     <Input
                       type="number"
                       value={value}
-                      onChange={(e) => setValue(e.target.value)}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setActiveField('from');
+                        setValue(next);
+                        convertFrom(next);
+                      }}
+                      onFocus={() => setActiveField('from')}
                       placeholder="0.00"
                       className="h-12 flex-1 min-w-0 bg-white border-[1.5px] border-[#EDE0F0] rounded-[14px] px-3 text-[22px] font-mono font-medium text-[#1E1228] focus-visible:ring-2 focus-visible:ring-[#E8608A]/20"
                     />
@@ -208,11 +291,19 @@ function UnitConverter() {
                 <div className="bg-[linear-gradient(135deg,#FDF0F5_0%,#F8EEFA_100%)] border-[1.5px] border-[#F0D8EC] rounded-[20px] p-4">
                   <p className="text-[10px] font-semibold text-[#C8A0C0] tracking-[0.08em] uppercase mb-2">{t('to') || 'To'}</p>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-mono text-[28px] font-medium text-[#C4447A] tracking-[-0.5px] truncate">
-                        {result || '0.00'}
-                      </p>
-                    </div>
+                    <Input
+                      type="number"
+                      value={result}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setActiveField('to');
+                        setResult(next);
+                        convertTo(next);
+                      }}
+                      onFocus={() => setActiveField('to')}
+                      placeholder="0.00"
+                      className="h-12 flex-1 min-w-0 bg-white border-[1.5px] border-[#EDE0F0] rounded-[14px] px-3 text-[22px] font-mono font-medium text-[#C4447A] tracking-[-0.5px] focus-visible:ring-2 focus-visible:ring-[#E8608A]/20"
+                    />
                     <Select value={toUnit} onValueChange={setToUnit}>
                       <SelectTrigger className="h-12 w-auto bg-white border-[1.5px] border-[#EDE0F0] rounded-[14px] px-3 text-xs font-semibold text-[#7A4A8A] shadow-none focus:ring-2 focus:ring-[#E8608A]/20">
                         <SelectValue />
@@ -230,7 +321,7 @@ function UnitConverter() {
 
                 <Button
                   onClick={handleConvert}
-                  className="w-full h-12 rounded-[18px] text-base font-semibold text-white bg-[linear-gradient(135deg,#E8608A,#C4447A)] hover:opacity-95 shadow-[0_10px_30px_rgba(196,68,122,0.22)]"
+                  className="w-full h-12 rounded-[18px] text-base font-semibold text-white bg-[#E91E65] hover:bg-[#D81B60] shadow-[0_12px_34px_rgba(233,30,101,0.26)] active:scale-[0.99]"
                 >
                   {t('convert') || 'Convert'}
                 </Button>
@@ -299,7 +390,17 @@ function UnitConverter() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-[#B090C0]">{t('noHistory') || 'No history'}</p>
+                    <div className="py-6 flex flex-col items-center text-center">
+                      <div className="h-10 w-10 rounded-full bg-white border border-[#EDE0F0] shadow-[0_1px_6px_rgba(180,100,150,0.08)] flex items-center justify-center text-[#C8809A]">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <p className="mt-3 text-sm font-semibold text-[#7A4A8A]">
+                        {t('noHistory', { defaultValue: 'No history yet' })}
+                      </p>
+                      <p className="mt-1 text-xs text-[#B090C0]">
+                        {t('noHistoryHint', { defaultValue: 'Make a conversion to see it here.' })}
+                      </p>
+                    </div>
                   )}
                 </div>
 
